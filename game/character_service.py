@@ -28,17 +28,17 @@ def setup_characters(pygame_load):
 
 def setup_dr_magnus_blackthorn():
     global dr_magnus_blackthorn_0, dr_magnus_blackthorn_1, dr_magnus_blackthorn_2, dr_magnus_blackthorn_3, img_to_load
-    dr_magnus_blackthorn_0 = pygame.image.load("img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-0.png").convert_alpha()
+    dr_magnus_blackthorn_0 = pygame.image.load("../img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-0.png").convert_alpha()
     dr_magnus_blackthorn_0 = pygame.transform.scale(dr_magnus_blackthorn_0, (300, 300))
     img_to_load = dr_magnus_blackthorn_0
 
-    dr_magnus_blackthorn_1 = pygame.image.load("img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-1.png").convert_alpha()
+    dr_magnus_blackthorn_1 = pygame.image.load("../img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-1.png").convert_alpha()
     dr_magnus_blackthorn_1 = pygame.transform.scale(dr_magnus_blackthorn_1, (300, 300))
 
-    dr_magnus_blackthorn_2 = pygame.image.load("img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-2.png").convert_alpha()
+    dr_magnus_blackthorn_2 = pygame.image.load("../img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-2.png").convert_alpha()
     dr_magnus_blackthorn_2 = pygame.transform.scale(dr_magnus_blackthorn_2, (300, 300))
 
-    dr_magnus_blackthorn_3 = pygame.image.load("img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-3.png").convert_alpha()
+    dr_magnus_blackthorn_3 = pygame.image.load("../img\characters\dr_magnus_blackthorne\dr_magnus_blackthorne-3.png").convert_alpha()
     dr_magnus_blackthorn_3 = pygame.transform.scale(dr_magnus_blackthorn_3, (300, 300))
 
 
@@ -59,10 +59,10 @@ def get_character():
             if first:
                 current_img = 3
                 first = False
-            else: 
+            else:
                 current_img = 0
             return dr_magnus_blackthorn_2
         elif current_img == 3:
             current_img = 0
             return dr_magnus_blackthorn_3
-    
+

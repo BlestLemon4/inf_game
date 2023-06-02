@@ -12,7 +12,7 @@ frame_counter = 0
 screen_height = None
 screen_width = None
 
-bg  = None
+bg = None
 bg_x = 0
 track = None
 sand_area_51 = None
@@ -21,7 +21,7 @@ sand_area_51_x = None
 img_to_load = None
 
 def setup_game(pygame_load, screen_load):
-    global pygame, screen, screen_height, screen_width, running, bg, track, sand_area_51, sand_area_51_x, dr_magnus_blackthorn_1, clock, bg_x, frame_counter, img_to_load
+    global pygame, screen, screen_height, screen_width, running, bg, track, sand_area_51, sand_area_51_x, dr_magnus_blackthorn_1, clock, bg_x, frame_counter, img_to_load, jumping
 
     pygame = pygame_load
     screen = screen_load
@@ -35,6 +35,7 @@ def setup_game(pygame_load, screen_load):
     screen_height = pygame.display.Info().current_h
 
     running = True
+    jumping = True
 
     setup_images()
     img_to_load = setup_characters(pygame)
@@ -49,11 +50,22 @@ def setup_game(pygame_load, screen_load):
     game_start()
 
 def game_start():
-    global bg_x
+    global bg_x, pos_x, pos_y
+    pos_x = 200
+    pos_y = 600
+
     while running:
         event_Handler()
         paint_screen()
         
+        pygame.display.update()
+        clock.tick(60)
+
+    while jumping:
+        event_Handler()
+        paint_jump()
+        pos_x = pos_x + 10
+        pos_y = pos_y
         pygame.display.update()
         clock.tick(60)
 
@@ -64,6 +76,13 @@ def paint_screen():
     if frame_counter % 10 == 0:
         img_to_load = get_character()
     screen.blit(img_to_load, (100, (screen_height - screen_height // 5) - 150))
+
+def paint_jump():
+
+    surf_center = (pos_x, pos_y)
+    screen.blit(img_to_load, surf_center)
+
+
 
 def paint_base():
     global bg_x, sand_area_51_x, bg, track, sand_area_51, sand_area_51_x
@@ -76,6 +95,9 @@ def paint_base():
     if bg_x + screen_width * 2.5 > screen_width:
         bg_x -= 10
         sand_area_51_x -= 10
+
+
+
 
 def event_Handler():
     global running
@@ -97,11 +119,11 @@ def keyboard_event_handler(event):
 
 def setup_images():
     global bg, track, sand_area_51
-    bg = pygame.image.load("img/infGameBackground.jpg").convert()
+    bg = pygame.image.load("../img/infGameBackground.jpg").convert()
     bg = pygame.transform.scale(bg, (screen_width * 2.5, screen_height - screen_height // 5))
 
-    track = pygame.image.load("img/runningTrack.png").convert()
+    track = pygame.image.load("../img/runningTrack.png").convert()
     track = pygame.transform.scale(track, (screen_width * 2, screen_height - screen_height // 5))
 
-    sand_area_51 = pygame.image.load("img/landingarea51.png").convert()
+    sand_area_51 = pygame.image.load("../img/landingarea51.png").convert()
     sand_area_51 = pygame.transform.scale(sand_area_51, (screen_width * 0.75, screen_height - screen_height // 5))
