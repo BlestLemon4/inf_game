@@ -1,12 +1,11 @@
 import sys
 import game
-import pygame
 
-menu_items = ["Start Game", "Options", "Background", "Quit"]
+menu_items = ["Start Game", "Options", "Quit"]
 selected_item = None
 background_list = []
 background = None
-current_bg = 0
+current_bg = 1
 
 running = True
 
@@ -26,37 +25,22 @@ GRAY = (200, 200, 200)
 
 
 def menu_setup(screen_load, pygame_load):
-    global pygame, screen, screen_height, screen_width, title_font, font, change_Background_event,background_list
+    global pygame, screen, screen_height, screen_width, title_font, font, change_Background_event, background_list
     pygame = pygame_load
     change_Background_event = pygame.USEREVENT + 1
     screen = screen_load
-    pygame.display.set_caption("Pygame Menu")
+    pygame.display.set_caption("Pixler Jump")
     screen_width = pygame.display.Info().current_w
     screen_height = pygame.display.Info().current_h
     font = pygame.font.Font(None, 36)
     title_font = pygame.font.Font(None, 48)
-    background_0 = pygame.image.load('..\img\Bild 1.jpg')
-    background_1 = pygame.image.load("..\img\Bild 2.jpg")
-    background_2 = pygame.image.load("..\img\Bild 3.jpg")
-    background_3 = pygame.image.load("..\img\Bild 4.jpg")
-    background_4 = pygame.image.load("..\img\Bild 5.jpg")
-    background_5 = pygame.image.load("..\img\Bild 6.jpg")
-    background_0 = pygame.transform.smoothscale(background_0, (screen_width, screen_height))
-    background_1 = pygame.transform.smoothscale(background_1, (screen_width, screen_height))
-    background_2 = pygame.transform.smoothscale(background_2, (screen_width, screen_height))
-    background_3 = pygame.transform.smoothscale(background_3, (screen_width, screen_height))
-    background_4 = pygame.transform.smoothscale(background_4, (screen_width, screen_height))
-    background_5 = pygame.transform.smoothscale(background_5, (screen_width, screen_height))
-    background_list = []
-    background_list.append(background_0)
-    background_list.append(background_1)
-    background_list.append(background_2)
-    background_list.append(background_3)
-    background_list.append(background_4)
-    background_list.append(background_5)
 
+    for i in range(6):
+        img = pygame.image.load("../img/Bild " + str(i+1) + ".jpg")
+        img = pygame.transform.smoothscale(img, (screen_width, screen_height))
+        background_list.append(img)
 
-    pygame.time.set_timer(pygame.USEREVENT+1, 1000,loops=0)
+    pygame.time.set_timer(pygame.USEREVENT + 1, 10000, loops=0)
     run()
 
 
@@ -67,10 +51,9 @@ def run():
     while running:
         event_Handler()
 
-
         screen.fill(BLACK)
 
-        title_text = title_font.render("Pygame Menu", True, WHITE)
+        title_text = title_font.render("Pixler Jump", True, WHITE)
         title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 4))
 
         screen.blits(((background, (0, 0)), (title_text, title_rect)))
@@ -102,8 +85,8 @@ def event_Handler():
 
     for event in pygame.event.get():
         background_change_event_handler(event)
-        keyboard_event_handler(event)
         mouse_click_event_handler(event)
+
 
 def background_change_event_handler(event):
     global change_Background_event
@@ -111,10 +94,10 @@ def background_change_event_handler(event):
     global background_list
     global current_bg
     if event.type == change_Background_event:
-        if current_bg > len(background_list):
+        if current_bg == len(background_list):
             current_bg = 0
         background = background_list[current_bg]
-        current_bg =+ 1
+        current_bg += 1
 
 
 def mouse_click_event_handler(event):
@@ -134,10 +117,5 @@ def mouse_click_event_handler(event):
                         print("Options selected")
                     elif i == 2:
                         running = False
-                    elif i == 3:
-                        print("Background selected")  # Replace with your background functionality code
                     break
 
-
-def keyboard_event_handler(event):
-    pass
