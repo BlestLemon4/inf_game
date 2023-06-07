@@ -170,8 +170,7 @@ def keyboard_event_handler(event):
         if event.key == K_SPACE:
             if jumped and not calculated:
                 bar_speed = 0
-                difference = abs(rect_bar_x / (screen_width / 2) - 1)
-                print(difference)
+                difference = abs((rect_bar_x + 25) / (screen_width / 2) - 1)
                 if difference == 0:
                     difference = 0.01
 
