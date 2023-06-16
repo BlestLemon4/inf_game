@@ -3,6 +3,7 @@ import pygame
 
 pygame.init()
 pygame.display.init()
+pygame.mixer.init()
 
 screen_width = 1680
 screen_height = 1050

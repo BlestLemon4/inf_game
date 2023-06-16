@@ -13,8 +13,6 @@ jumped = False
 landed = False
 character_running = False
 
-GRAVITY = 0.5  # Acceleration due to gravity
-
 frame_counter = 0
 
 screen_height = 0
@@ -23,7 +21,7 @@ screen_width = 0
 bg = None
 bg_x = 0
 
-character_x = 0
+character_x = 0.0
 character_y = 0
 character_velocity_y = 0
 jump_force = 0  # Initial upward velocity for the jump
@@ -38,22 +36,49 @@ sand_area_51_x = 0
 
 img_to_load = None
 
+end_attempt_event = None
+end_attempt = False
+
+menu_items = ["Restart", "Back"]
+font = None
+
 
 def setup_game(pygame_load, screen_load):
-    global pygame, screen, screen_height, screen_width, running, bg, track, sand_area_51, sand_area_51_x, dr_magnus_blackthorn_1, clock, bg_x, frame_counter, img_to_load, jumping, overstep_line_x
+    global pygame, screen, font, end_attempt_event
 
     pygame = pygame_load
     screen = screen_load
+
+    music_path = "../resources/music/background_play.mp3"
+    pygame.mixer.music.load(music_path)
+
+    font = pygame.font.Font(None, 36)
+    end_attempt_event = pygame.USEREVENT + 2
+    pygame.display.set_caption("Pixler Jump")
+    reset_game_state()
+
+    pygame.display.flip()
+    game_start()
+
+
+def reset_game_state():
+    global clock, frame_counter, screen_height, screen_width, running, img_to_load, sand_area_51_x, screen, bg_x
+    global jumping, jumped, landed, character_running, bg, character_x, character_y, character_velocity_y, jump_force
+    global calculated, rect_bar_x, bar_speed, track, end_attempt, end_attempt_event, pygame
+
     clock = pygame.time.Clock()
     bg_x = 0
-    frame_counter = 0
 
-    pygame.display.set_caption("Pixler Jump")
+    frame_counter = 0
 
     screen_width = pygame.display.Info().current_w
     screen_height = pygame.display.Info().current_h
 
     running = True
+    jumping = False
+    jumped = False
+    landed = False
+    character_running = False
 
     setup_background_images()
     img_to_load = setup_characters(pygame)
@@ -62,50 +87,125 @@ def setup_game(pygame_load, screen_load):
 
     screen.fill((255, 0, 255))
 
-    pygame.display.flip()
-    game_start()
+    frame_counter = 0
+
+    bg_x = 0
+
+    character_x = 0.0
+    character_y = 0
+    character_velocity_y = 0
+    jump_force = 0  # Initial upward velocity for the jump
+
+    calculated = False
+    rect_bar_x = 0
+    bar_speed = 0
+
+    end_attempt = False
 
 
 def game_start():
-    global bg_x, character_x, character_y, character_velocity_y, GRAVITY, jumping, calculated, bar_speed, landed, bg
-    global rect_bar_x, running, sand_area_51
+    global bg_x, character_x, character_y, character_velocity_y, jumping, calculated, bar_speed, landed, bg
+    global rect_bar_x, running, sand_area_51, screen
     character_y = (screen_height - screen_height // 5) - 150
     direction = 1
     bar_speed = 30
     ended = False
+    overstepped = False
     while running:
         if not ended:
-            event_handler()
             paint_screen()
+        event_handler()
 
-        if jumping:
+        if jumping and not overstepped:
             paint_bar()
             rect_bar_x += direction * bar_speed
             if rect_bar_x <= 0 or rect_bar_x >= screen_width - 50:
-                direction *= -1.05
+                if abs(direction) < 3:
+                    direction *= -1.05
+                else:
+                    direction *= -1
 
         if calculated and not landed:
             character_y += character_velocity_y
-            character_velocity_y += GRAVITY
+            character_velocity_y += 0.5
+        if character_x + 186 > sand_area_51_x and (not jumped or overstepped):
+            overstepped = True
+            show_overstep()
 
-        if jumping and character_y > (screen_height - screen_height // 5) - 150:
-            jumping = False
-            landed = True
+            if not ended:
+                pygame.time.set_timer(pygame.USEREVENT + 2, 1500, loops=1)
+                music_path = "../resources/music/drums.mp3"
+                pygame.mixer.music.load(music_path)
+                pygame.mixer.music.play()
+
             ended = True
-            jump_result = "You jumped " + str(clamp(character_x - sand_area_51_x, 0, 9999)) + "m"
-            title_text = pygame.font.Font(None, 48).render(jump_result, True, (255, 255, 255))
-            title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 3))
+        elif (jumping or ended) and character_y > (screen_height - screen_height // 5) - 150:
+            show_score()
+            if not ended:
+                pygame.time.set_timer(pygame.USEREVENT + 2, 1500, loops=1)
+                music_path = "../resources/music/drums.mp3"
+                pygame.mixer.music.load(music_path)
+                pygame.mixer.music.play()
+                pygame.mixer.music.set_pos(4.4)
+            ended = True
 
-            screen.blit(title_text, title_rect)
         pygame.display.update()
-        if character_x + 185 > sand_area_51_x and not jumped:
-            ended = True
-            title_text = pygame.font.Font(None, 48).render("Overstepped", True, (255, 255, 255))
-            title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 3))
-
-            screen.blit(title_text, title_rect)
-
+        if end_attempt:
+            jumping = False
+            screen.fill((0, 0, 0))
+            show_options()
         clock.tick(60)
+
+
+def show_score():
+    global jumping, landed, screen, end_attempt, pygame
+    jumping = False
+    landed = True
+
+    if not end_attempt:
+        jump_result = ["You jumped..."]
+        title_text = pygame.font.Font(None, 48).render(jump_result[0], True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 3))
+        screen.blit(title_text, title_rect)
+        return
+    if int(clamp(character_x - sand_area_51_x, 0, 9999)) == 0:
+        jump_result = ["...0cm??? HOW???",
+                       "Bro..., do you know what the so called 'Long jump' is?",
+                       "Like how it works and that you have to jump as far as possible?",
+                       "And like not on the track... 'cause the jump length is measured from the beginning of the "
+                       "sandarea 51?",
+                       "Yes? Okay now try again... or just Alt + F4 and we'll never see each other again!"]
+    else:
+        jump_result = ["..." + str(round(float(clamp(character_x - sand_area_51_x, 0, 9999)), 2)) + "cm"]
+
+    y_pos = screen_height // 3
+    for line in jump_result:
+        title_text = pygame.font.Font(None, 48).render(line, True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(screen_width // 2, y_pos))
+        screen.blit(title_text, title_rect)
+        y_pos += 50
+
+
+def show_overstep():
+    global screen
+    title_text = pygame.font.Font(None, 48).render("Overstepped", True, (255, 255, 255))
+    title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 3))
+
+    screen.blit(title_text, title_rect)
+
+
+def show_options():
+    global menu_items, font
+    pos = pygame.mouse.get_pos()
+
+    for i, item in enumerate(menu_items):
+        item_text = font.render(item, True, (255, 255, 255))
+        item_rect = item_text.get_rect(center=(screen_width // 2, screen_height // 2 + (i + 2) * 50))
+
+        if item_rect.collidepoint(pos):
+            item_text = font.render(item, True, (100, 100, 100))
+
+        screen.blit(item_text, item_rect)
 
 
 def paint_screen():
@@ -113,11 +213,11 @@ def paint_screen():
     paint_base()
     frame_counter += 1
     if frame_counter % 10 == 0 and character_running:
-        img_to_load = get_character()
+        img_to_load = get_character_frame()
     screen.blit(img_to_load, (character_x, character_y))
     if (bg_x <= -screen_width * 1.5 and (character_running or calculated) and not landed) or \
             (character_x < screen_width - 200 and calculated and not landed):
-        character_x += 10
+        character_x += screen_width / 170
 
 
 def paint_base():
@@ -147,8 +247,10 @@ def paint_bar():
 
 
 def event_handler():
-    global running
+    global running, end_attempt_event, end_attempt
     for event in pygame.event.get():
+        if event.type == end_attempt_event:
+            end_attempt = True
         keyboard_event_handler(event)
         mouse_click_event_handler(event)
 
@@ -157,15 +259,29 @@ def mouse_click_event_handler(event):
     global running
     if event.type == pygame.QUIT:
         running = False
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:  # Left mouse button
+            pos = pygame.mouse.get_pos()
+            for i, item in enumerate(menu_items):
+                item_text = font.render(item, True, (100, 100, 100))
+                item_rect = item_text.get_rect(center=(screen_width // 2, screen_height // 2 + (i + 2) * 50))
+                if item_rect.collidepoint(pos):
+                    if i == 0:
+                        setup_game(pygame, screen)
+                    elif i == 1:
+                        running = False
+                    break
 
 
 def keyboard_event_handler(event):
     global jumping, character_velocity_y, jump_force, jumped, character_running, bar_speed, calculated, screen_width
-    global jump_point, landed
+    global jump_point, landed, pygame
     if event.type == KEYDOWN:
         if event.key == K_SPACE:
             if not jumped:
                 character_running = True
+                pygame.mixer.music.play(-1)
+                pygame.mixer.music.set_pos(2)
     if event.type == KEYUP:
         if event.key == K_SPACE:
             if jumped and not calculated:
@@ -186,11 +302,11 @@ def keyboard_event_handler(event):
 
 def setup_background_images():
     global bg, track, sand_area_51
-    bg = pygame.image.load("../img/infGameBackground.jpg").convert()
+    bg = pygame.image.load("../resources/play_background/infGameBackground.jpg").convert()
     bg = pygame.transform.scale(bg, (screen_width * 2.5, screen_height - screen_height // 5))
 
-    track = pygame.image.load("../img/runningTrack.png").convert()
+    track = pygame.image.load("../resources/play_background/runningTrack.png").convert()
     track = pygame.transform.scale(track, (screen_width * 2, screen_height - screen_height // 5))
 
-    sand_area_51 = pygame.image.load("../img/landingarea51.png").convert()
+    sand_area_51 = pygame.image.load("../resources/play_background/landingarea51.png").convert()
     sand_area_51 = pygame.transform.scale(sand_area_51, (screen_width * 0.75, screen_height - screen_height // 5))

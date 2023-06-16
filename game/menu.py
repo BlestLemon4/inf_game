@@ -2,7 +2,6 @@ import sys
 import game
 
 menu_items = ["Start Game", "Options", "Quit"]
-selected_item = None
 background_list = []
 background = None
 current_bg = 1
@@ -11,8 +10,8 @@ running = True
 
 pygame = None
 screen = None
-screen_width = None
-screen_height = None
+screen_width = 0
+screen_height = 0
 
 change_Background_event = None
 
@@ -23,10 +22,17 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
+music_path = "../resources/music/main_theme_ark.mp3"
+
 
 def menu_setup(screen_load, pygame_load):
     global pygame, screen, screen_height, screen_width, title_font, font, change_Background_event, background_list
     pygame = pygame_load
+
+    pygame.mixer.music.load(music_path)
+    pygame.mixer.music.play(-1)  # -1 will loop the music indefinitely
+    pygame.mixer.music.set_pos(43)
+
     change_Background_event = pygame.USEREVENT + 1
     screen = screen_load
     pygame.display.set_caption("Pixler Jump")
@@ -36,7 +42,7 @@ def menu_setup(screen_load, pygame_load):
     title_font = pygame.font.Font(None, 48)
 
     for i in range(6):
-        img = pygame.image.load("../img/Bild " + str(i+1) + ".jpg")
+        img = pygame.image.load("../resources/menu_background/menu_bg_" + str(i+1) + ".jpg")
         img = pygame.transform.smoothscale(img, (screen_width, screen_height))
         background_list.append(img)
 
@@ -113,6 +119,9 @@ def mouse_click_event_handler(event):
                 if item_rect.collidepoint(pos):
                     if i == 0:
                         game.setup_game(pygame, screen)
+                        pygame.mixer.music.load(music_path)
+                        pygame.mixer.music.play()
+                        pygame.mixer.music.set_pos(43)
                     elif i == 1:
                         print("Options selected")
                     elif i == 2:
