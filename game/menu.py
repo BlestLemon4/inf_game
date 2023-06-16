@@ -1,16 +1,19 @@
 import sys
 import game
-from pygame.locals import *
 
 menu_items = ["Start Game", "Options", "Quit"]
-selected_item = None
+background_list = []
+background = None
+current_bg = 1
 
 running = True
 
 pygame = None
 screen = None
-screen_width = None
-screen_height = None
+screen_width = 0
+screen_height = 0
+
+change_Background_event = None
 
 font = None
 title_font = None
@@ -19,27 +22,47 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
+music_path = "../resources/music/main_theme_ark.mp3"
+
+
 def menu_setup(screen_load, pygame_load):
-    global pygame, screen, screen_height, screen_width, title_font, font
+    global pygame, screen, screen_height, screen_width, title_font, font, change_Background_event, background_list
     pygame = pygame_load
+
+    pygame.mixer.music.load(music_path)
+    pygame.mixer.music.play(-1)  # -1 will loop the music indefinitely
+    pygame.mixer.music.set_pos(43)
+
+    change_Background_event = pygame.USEREVENT + 1
     screen = screen_load
-    pygame.display.set_caption("Pygame Menu")
+    pygame.display.set_caption("Pixler Jump")
     screen_width = pygame.display.Info().current_w
     screen_height = pygame.display.Info().current_h
     font = pygame.font.Font(None, 36)
     title_font = pygame.font.Font(None, 48)
+
+    for i in range(6):
+        img = pygame.image.load("../resources/menu_background/menu_bg_" + str(i+1) + ".jpg")
+        img = pygame.transform.smoothscale(img, (screen_width, screen_height))
+        background_list.append(img)
+
+    pygame.time.set_timer(pygame.USEREVENT + 1, 10000, loops=0)
     run()
+
 
 def run():
     global running
+    global background
+    background = background_list[0]
     while running:
         event_Handler()
-        
+
         screen.fill(BLACK)
 
-        title_text = title_font.render("Pygame Menu", True, WHITE)
+        title_text = title_font.render("Pixler Jump", True, WHITE)
         title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 4))
-        screen.blit(title_text, title_rect)
+
+        screen.blits(((background, (0, 0)), (title_text, title_rect)))
 
         paint_menu()
 
@@ -51,7 +74,6 @@ def run():
 
 
 def paint_menu():
-    # global GRAY, font
     pos = pygame.mouse.get_pos()
     for i, item in enumerate(menu_items):
         item_text = font.render(item, True, GRAY)
@@ -63,11 +85,25 @@ def paint_menu():
         item_rect = item_text.get_rect(center=(screen_width // 2, screen_height // 2 + i * 50))
         screen.blit(item_text, item_rect)
 
+
 def event_Handler():
     global running
+
     for event in pygame.event.get():
-            keyboard_event_handler(event)
-            mouse_click_event_handler(event)
+        background_change_event_handler(event)
+        mouse_click_event_handler(event)
+
+
+def background_change_event_handler(event):
+    global change_Background_event
+    global background
+    global background_list
+    global current_bg
+    if event.type == change_Background_event:
+        if current_bg == len(background_list):
+            current_bg = 0
+        background = background_list[current_bg]
+        current_bg += 1
 
 
 def mouse_click_event_handler(event):
@@ -83,11 +119,12 @@ def mouse_click_event_handler(event):
                 if item_rect.collidepoint(pos):
                     if i == 0:
                         game.setup_game(pygame, screen)
+                        pygame.mixer.music.load(music_path)
+                        pygame.mixer.music.play()
+                        pygame.mixer.music.set_pos(43)
                     elif i == 1:
                         print("Options selected")
                     elif i == 2:
                         running = False
                     break
 
-def keyboard_event_handler(event):
-    pass
